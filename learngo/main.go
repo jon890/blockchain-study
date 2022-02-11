@@ -1,56 +1,31 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-	"strconv"
+	"os"
+	"strings"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/jon890/learngo/scrapper"
+	"github.com/labstack/echo/v4"
 )
 
-var baseURL string = "https://kr.indeed.com/jobs?q=kotlin"
+const fileName string = "jobs.csv"
+
+func handleHome(c echo.Context) error {
+	// return c.String(http.StatusOK, "Hello, World!")
+	return c.File("home.html")
+}
+
+func handleScrape(c echo.Context) error {
+	defer os.Remove(fileName)
+
+	term := strings.ToLower(scrapper.CleanString(c.FormValue("term")))
+	scrapper.Scrape(term)
+	return c.Attachment(fileName, fileName)
+}
 
 func main() {
-	totalPages := getPages()
-
-	for i := 0; i < totalPages; i++ {
-		getPage(i)
-	}
-}
-
-func getPage(page int) {
-	pageURL := baseURL + "&start=" + strconv.Itoa(page*10)
-	fmt.Println("Requesting", pageURL)
-}
-
-func getPages() int {
-	pages := 0
-	res, err := http.Get(baseURL)
-	checkErr(err)
-	checkCode(res)
-
-	// 이 함수가 끝났을 때 IO Stream 종료
-	defer res.Body.Close()
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	checkErr(err)
-
-	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
-		pages = s.Find("a").Length()
-	})
-
-	return pages
-}
-
-func checkErr(err error) {
-	if err != nil {
-		log.Fatalln(err)
-	}
-}
-
-func checkCode(res *http.Response) {
-	if res.StatusCode != 200 {
-		log.Fatalln("Request failed with Status:", res.StatusCode)
-	}
+	e := echo.New()
+	e.GET("/", handleHome)
+	e.POST("/scrape", handleScrape)
+	e.Logger.Fatal(e.Start(":1323"))
 }
