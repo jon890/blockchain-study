@@ -1,7 +1,7 @@
 package main
 
-import "github.com/jon890/foscoin/explorer"
+import "github.com/jon890/foscoin/rest"
 
 func main() {
-	explorer.Start()
+	rest.Start()
 }
