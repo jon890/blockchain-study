@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/jon890/foscoin/explorer"
 	"github.com/jon890/foscoin/rest"
@@ -14,7 +15,7 @@ func usage() {
 	fmt.Printf("Please use the following flags:\n")
 	fmt.Printf("-port 4000:    Set the PORT of the server\n")
 	fmt.Printf("-mode rest:    Start the REST API (recommended)\n\n")
-	os.Exit(0)
+	runtime.Goexit()
 }
 
 func Start() {
