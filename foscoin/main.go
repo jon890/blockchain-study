@@ -1,11 +1,9 @@
 package main
 
-import (
-	"github.com/jon890/foscoin/cli"
-	"github.com/jon890/foscoin/db"
-)
+import "github.com/jon890/foscoin/wallet"
 
 func main() {
-	defer db.Close()
-	cli.Start()
+	// defer db.Close()
+	// cli.Start()
+	wallet.Start()
 }
