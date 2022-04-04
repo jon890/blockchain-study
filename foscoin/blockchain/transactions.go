@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jon890/foscoin/utils"
+	"github.com/jon890/foscoin/wallet"
 )
 
 const (
@@ -119,7 +120,7 @@ func makeTx(from, to string, amount int) (*Tx, error) {
  *	트랜잭션 추가
  **/
 func (m *mempool) AddTx(to string, amount int) error {
-	tx, err := makeTx("fos", to, amount)
+	tx, err := makeTx(wallet.Wallet().Address, to, amount)
 	if err != nil {
 		return err
 	}
@@ -131,7 +132,7 @@ func (m *mempool) AddTx(to string, amount int) error {
  *	트랜잭션 확인
  **/
 func (m *mempool) TxToConfirm() []*Tx {
-	coinbase := makeCoinbaseTx("fos")
+	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
 	txs := m.Txs
 	txs = append(txs, coinbase)
 	m.Txs = nil

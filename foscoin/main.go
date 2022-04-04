@@ -5,5 +5,5 @@ import "github.com/jon890/foscoin/wallet"
 func main() {
 	// defer db.Close()
 	// cli.Start()
-	wallet.Start()
+	wallet.Wallet()
 }
