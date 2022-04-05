@@ -59,23 +59,32 @@ func restoreKey() (key *ecdsa.PrivateKey) {
 	return
 }
 
+/**
+ * 비밀키에서 퍼블릭키 string 생성
+ */
 func aFromK(key *ecdsa.PrivateKey) string {
-	z := append(key.X.Bytes(), key.Y.Bytes()...)
+	return encodeBigInts(key.X.Bytes(), key.Y.Bytes())
+}
+
+func encodeBigInts(a, b []byte) string {
+	z := append(a, b...)
 	return fmt.Sprintf("%x", z)
 }
 
 /**
  * 데이터를 해당 사용자로 서명한다
  */
-func sign(payload string, w *wallet) string {
+func Sign(payload string, w *wallet) string {
 	payloadAsByte, err := hex.DecodeString(payload)
 	utils.HandleErr(err)
 	r, s, err := ecdsa.Sign(rand.Reader, w.privateKey, payloadAsByte)
 	utils.HandleErr(err)
-	signature := append(r.Bytes(), s.Bytes()...)
-	return fmt.Sprintf("%x", signature)
+	return encodeBigInts(r.Bytes(), s.Bytes())
 }
 
+/**
+ * payload로부터 2개의 big int 복원
+ */
 func restoreBigInts(payload string) (*big.Int, *big.Int, error) {
 	bytes, err := hex.DecodeString(payload)
 	if err != nil {
@@ -91,7 +100,7 @@ func restoreBigInts(payload string) (*big.Int, *big.Int, error) {
 	return &bigA, &bigB, nil
 }
 
-func verify(signature, payload, address string) bool {
+func Verify(signature, payload, address string) bool {
 	// 1. restore r, s
 	r, s, err := restoreBigInts(signature)
 	utils.HandleErr(err)
