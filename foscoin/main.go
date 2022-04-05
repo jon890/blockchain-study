@@ -1,11 +1,26 @@
 package main
 
 import (
-	"github.com/jon890/foscoin/cli"
-	"github.com/jon890/foscoin/db"
+	"fmt"
+	"time"
 )
 
+func countToTen(c chan int) {
+	for i := range [10]int{} {
+		time.Sleep(1 * time.Second)
+		fmt.Printf("sending %d\n", i)
+		c <- i
+	}
+}
+
 func main() {
-	defer db.Close()
-	cli.Start()
+	// defer db.Close()
+	// cli.Start()
+
+	c := make(chan int)
+	go countToTen(c)
+	for {
+		a := <-c
+		fmt.Printf("received %d\n", a)
+	}
 }
