@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form>
+      <input type="text" />
+    </form>
+    <span></span>
+    <script>
+      const form = document.querySelector("form");
+      const input = document.querySelector("input");
+      const span = document.querySelector("span");
+      const socket = new WebSocket("ws://localhost:4000/ws");
+      socket.addEventListener("close", function () {
+        console.log("conn closed");
+      });
+      socket.addEventListener("message", (e) => {
+        if (!span) {
+          console.warn("SPAN is not found");
+        }
+        span.innerHTML = span.innerHTML + `\n${e.data}`;
+      });
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!input) {
+          console.warn("INPUT is not found");
+        }
+        socket.send(input.value);
+        input.value = "";
+      });
+    </script>
+  </body>
+</html>
