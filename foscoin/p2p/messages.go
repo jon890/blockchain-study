@@ -43,6 +43,5 @@ func handleMsg(m *Message, p *peer) {
 		err := json.Unmarshal(m.Payload, &payload)
 		utils.HandleErr(err)
 		fmt.Println(payload)
-
 	}
 }
