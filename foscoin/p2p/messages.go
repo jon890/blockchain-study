@@ -3,6 +3,7 @@ package p2p
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/jon890/foscoin/blockchain"
 	"github.com/jon890/foscoin/utils"
@@ -14,6 +15,9 @@ const (
 	MessageNewestBlock MessageKind = iota
 	MessageAllBlocksRequest
 	MessageAllBlocksResponse
+	MessageNotifyNewBlock
+	MessageNotifyNewTx
+	MessageNotifyNewPeer
 )
 
 type Message struct {
@@ -47,6 +51,21 @@ func sendAllBlocks(p *peer) {
 	p.inbox <- m
 }
 
+func notifyNewBlock(b *blockchain.Block, p *peer) {
+	m := makeMessage(MessageNotifyNewBlock, b)
+	p.inbox <- m
+}
+
+func notifyNewTx(tx *blockchain.Tx, p *peer) {
+	m := makeMessage(MessageNotifyNewTx, tx)
+	p.inbox <- m
+}
+
+func notifyNewPeer(address string, p *peer) {
+	m := makeMessage(MessageNotifyNewPeer, address)
+	p.inbox <- m
+}
+
 func handleMsg(m *Message, p *peer) {
 	switch m.Kind {
 	case MessageNewestBlock:
@@ -73,5 +92,22 @@ func handleMsg(m *Message, p *peer) {
 		var payload []*blockchain.Block
 		err := json.Unmarshal(m.Payload, &payload)
 		utils.HandleErr(err)
+		blockchain.Blockchain().Replace(payload)
+	case MessageNotifyNewBlock:
+		var payload *blockchain.Block
+		err := json.Unmarshal(m.Payload, &payload)
+		utils.HandleErr(err)
+		blockchain.Blockchain().AddPeerBlock(payload)
+	case MessageNotifyNewTx:
+		var payload *blockchain.Tx
+		err := json.Unmarshal(m.Payload, &payload)
+		utils.HandleErr(err)
+		blockchain.Mempool().AddPeerTx(payload)
+	case MessageNotifyNewPeer:
+		var payload string
+		err := json.Unmarshal(m.Payload, &payload)
+		utils.HandleErr(err)
+		parts := strings.Split(payload, ":")
+		AddPeer(parts[0], parts[1], parts[2], false)
 	}
 }

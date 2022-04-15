@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/jon890/foscoin/blockchain"
 	"github.com/jon890/foscoin/utils"
 )
 
@@ -27,13 +28,40 @@ func Upgrade(rw http.ResponseWriter, r *http.Request) {
 	initPeer(conn, ip, openPort)
 }
 
-func AddPeer(address, port, openPort string) {
+func AddPeer(address, port, openPort string, broadcast bool) {
 	// Port :4000 is requesting an upgrade from the port :3000
 	fmt.Printf("%s to connect to port to port %s\n", openPort, port)
 
-	urlStr := fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort[1:])
+	urlStr := fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort)
 	conn, _, err := websocket.DefaultDialer.Dial(urlStr, nil)
 	utils.HandleErr(err)
 	p := initPeer(conn, address, port)
+
+	if broadcast {
+		broadcastNewPeer(p)
+		return
+	}
+
 	sendNewestBlock(p)
+}
+
+func BroadcastNewBlock(b *blockchain.Block) {
+	for _, p := range Peers.v {
+		notifyNewBlock(b, p)
+	}
+}
+
+func BroadcastNewTx(tx *blockchain.Tx) {
+	for _, p := range Peers.v {
+		notifyNewTx(tx, p)
+	}
+}
+
+func broadcastNewPeer(newPeer *peer) {
+	for key, p := range Peers.v {
+		if key != newPeer.key {
+			payload := fmt.Sprintf("%s:%s", newPeer.key, p.port)
+			notifyNewPeer(payload, p)
+		}
+	}
 }
